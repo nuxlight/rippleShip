@@ -5,7 +5,7 @@ class Grid(models.Model):
     height = models.IntegerField()
 
 class Party(models.Model):
-    party_number = models.CharField(max_length=5)
+    uuid = models.CharField(max_length=5)
     grid = models.ForeignKey(Grid, on_delete=models.CASCADE)
 
 class ShipType(models.Model):
