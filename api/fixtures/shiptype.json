@@ -1,0 +1,30 @@
+[
+    {
+        "model": "api.ShipType",
+        "pk": 1,
+        "fields": {
+            "name": "Croiseur"
+        }
+    },
+    {
+        "model": "api.ShipType",
+        "pk": 2,
+        "fields": {
+            "name": "Escorteurs"
+        }
+    },
+    {
+        "model": "api.ShipType",
+        "pk": 3,
+        "fields": {
+            "name": "Torpilleurs"
+        }
+    },
+    {
+        "model": "api.ShipType",
+        "pk": 4,
+        "fields": {
+            "name": "Sous-marins"
+        }
+    }
+]
