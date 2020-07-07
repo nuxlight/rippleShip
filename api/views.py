@@ -5,15 +5,17 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 import logging
 import uuid
+from .helpers import GameEngine
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
+ge = GameEngine(10,1,2,3,4)
 
 @api_view(['GET'])
 def generate_party(request):
-    logger.debug("Generate a new party !!")
+    logger.info("Generate a new party !!")
+    ge.create_game_board()
     return Response(
         {
-            'test_value': test,
             'uuid': str(uuid.uuid4())
         }
     )

@@ -1,8 +1,11 @@
 import numpy as np
 import random 
 import logging
+import uuid
 
-logger = logging.getLogger(__name__)
+from .models import Ship, Grid, Position, Party, ShipType
+
+logger = logging.getLogger('django')
 
 '''
 This class defined all methods for the game
@@ -27,37 +30,24 @@ class GameEngine():
         super().__init__()
 
     def create_game_board(self):
-        # First we create a grid with dimensions value
-        grid = np.full((GRID_SIZE,GRID_SIZE), 0)
+        grid = np.full((self.GRID_SIZE,self.GRID_SIZE), 0)
+        party = Party(uuid=str(uuid.uuid4()), grid=Grid(width=self.GRID_SIZE,height=self.GRID_SIZE))
         # Create dict type for each ship
-        croiseur = {
-            "name": "C",
-            "type": 1,
-            "size": 4
-        }
-        escorteurs = {
-            "name": "E",
-            "type": 2,
-            "size": 3
-        }
-        torpilleurs = {
-            "name": "T",
-            "type": 3,
-            "size": 2
-        }
-        sousmarin = {
-            "name": "S",
-            "type": 4,
-            "size": 1
-        }
+        croiseur = {"name": "C","type": 1,"size": 4}
+        escorteurs = {"name": "E","type": 2,"size": 3}
+        torpilleurs = {"name": "T","type": 3,"size": 2}
+        sousmarin = {"name": "S","type": 4,"size": 1}
         # generate ship positions
-        for i in range(0, CROISEUR_NUMBER):
-            self.create_ship(croiseur, grid)
-        for i in range(0, ESCORTEUR_NUMBER):
+        for i in range(0, self.CROISEUR_NUMBER):
+            path = self.create_ship(croiseur, grid)
+            ship = Ship(party=party, ship_type=1)
+            ship.save()
+            Position(ship=ship, abs=path["abs"], ord=path["ord"]).save()
+        for i in range(0, self.ESCORTEUR_NUMBER):
             self.create_ship(escorteurs, grid)
-        for i in range(0, TORPILLEUR_NUMBER):
+        for i in range(0, self.TORPILLEUR_NUMBER):
             self.create_ship(torpilleurs, grid)
-        for i in range(0, SOUSMARIN_NUMBER):
+        for i in range(0, self.SOUSMARIN_NUMBER):
             self.create_ship(sousmarin, grid)
         self.clean_grid(grid)
         logger.info("New board generated")
@@ -76,7 +66,7 @@ class GameEngine():
             path = self.generate_path(ship, position, grid)
         self.generate_marge(path, grid, ship)
         self.draw_ship(path, ship, position, grid)
-        ship["path"] = path
+        return path
 
 
     def draw_ship(self, path, ship, position, grid):
@@ -86,43 +76,43 @@ class GameEngine():
     def generate_marge(self, path, grid, ship):
         for empl in path:
             try:
-                if grid[empl["ord"]][empl["abs"]+1] not in LIST_OF_SHIP:
-                    grid[empl["ord"]][empl["abs"]+1] = MARGIN_VALUE
+                if grid[empl["ord"]][empl["abs"]+1] not in self.LIST_OF_SHIP:
+                    grid[empl["ord"]][empl["abs"]+1] = self.MARGIN_VALUE
             except:
                 pass
             try:
-                if grid[empl["ord"]][empl["abs"]-1] not in LIST_OF_SHIP:
-                    grid[empl["ord"]][empl["abs"]-1] = MARGIN_VALUE
+                if grid[empl["ord"]][empl["abs"]-1] not in self.LIST_OF_SHIP:
+                    grid[empl["ord"]][empl["abs"]-1] = self.MARGIN_VALUE
             except:
                 pass
             try:
-                if grid[empl["ord"]+1][empl["abs"]] not in LIST_OF_SHIP:
-                    grid[empl["ord"]+1][empl["abs"]] = MARGIN_VALUE
+                if grid[empl["ord"]+1][empl["abs"]] not in self.LIST_OF_SHIP:
+                    grid[empl["ord"]+1][empl["abs"]] = self.MARGIN_VALUE
             except:
                 pass
             try:    
-                if grid[empl["ord"]-1][empl["abs"]] not in LIST_OF_SHIP:
-                    grid[empl["ord"]-1][empl["abs"]] = MARGIN_VALUE
+                if grid[empl["ord"]-1][empl["abs"]] not in self.LIST_OF_SHIP:
+                    grid[empl["ord"]-1][empl["abs"]] = self.MARGIN_VALUE
             except:
                 pass
             try:
-                if grid[empl["ord"]+1][empl["abs"]+1] not in LIST_OF_SHIP:
-                    grid[empl["ord"]+1][empl["abs"]+1] = MARGIN_VALUE
+                if grid[empl["ord"]+1][empl["abs"]+1] not in self.LIST_OF_SHIP:
+                    grid[empl["ord"]+1][empl["abs"]+1] = self.MARGIN_VALUE
             except:
                 pass
             try:
-                if grid[empl["ord"]-1][empl["abs"]+1] not in LIST_OF_SHIP:
-                    grid[empl["ord"]-1][empl["abs"]+1] = MARGIN_VALUE
+                if grid[empl["ord"]-1][empl["abs"]+1] not in self.LIST_OF_SHIP:
+                    grid[empl["ord"]-1][empl["abs"]+1] = self.MARGIN_VALUE
             except:
                 pass
             try:
-                if grid[empl["ord"]+1][empl["abs"]-1] not in LIST_OF_SHIP:
-                    grid[empl["ord"]+1][empl["abs"]-1] = MARGIN_VALUE
+                if grid[empl["ord"]+1][empl["abs"]-1] not in self.LIST_OF_SHIP:
+                    grid[empl["ord"]+1][empl["abs"]-1] = self.MARGIN_VALUE
             except:
                 pass
             try:
-                if grid[empl["ord"]-1][empl["abs"]-1] not in LIST_OF_SHIP:
-                    grid[empl["ord"]-1][empl["abs"]-1] = MARGIN_VALUE
+                if grid[empl["ord"]-1][empl["abs"]-1] not in self.LIST_OF_SHIP:
+                    grid[empl["ord"]-1][empl["abs"]-1] = self.MARGIN_VALUE
             except:
                 pass
 
@@ -131,15 +121,15 @@ class GameEngine():
         left_dir = []
         for l in range(0, position["abs"]):
             index = grid[position["ord"]][l]
-            if index == 0 and len(left_dir) < ship["size"] and index != MARGIN_VALUE:
+            if index == 0 and len(left_dir) < ship["size"] and index != self.MARGIN_VALUE:
                 left_dir.append({
                     "ord": position["ord"],
                     "abs": l
                 })
         right_dir = []
-        for r in range(position["abs"], GRID_SIZE):
+        for r in range(position["abs"], self.GRID_SIZE):
             index = grid[position["ord"]][r]
-            if index == 0 and len(right_dir) < ship["size"] and index != MARGIN_VALUE:
+            if index == 0 and len(right_dir) < ship["size"] and index != self.MARGIN_VALUE:
                 right_dir.append({
                     "ord": position["ord"],
                     "abs": r
@@ -147,15 +137,15 @@ class GameEngine():
         up_dir = []
         for u in range(0, position["ord"]):
             index = grid[u][position["abs"]]
-            if index == 0 and len(up_dir) < ship["size"] and index != MARGIN_VALUE:
+            if index == 0 and len(up_dir) < ship["size"] and index != self.MARGIN_VALUE:
                 up_dir.append({
                     "ord": u,
                     "abs": position["abs"]
                 })
         down_dir = []
-        for d in range(position["ord"], GRID_SIZE):
+        for d in range(position["ord"], self.GRID_SIZE):
             index = grid[d][position["abs"]]
-            if index == 0 and len(down_dir) < ship["size"] and index != MARGIN_VALUE:
+            if index == 0 and len(down_dir) < ship["size"] and index != self.MARGIN_VALUE:
                 down_dir.append({
                     "ord": d,
                     "abs": position["abs"]
@@ -202,8 +192,8 @@ class GameEngine():
             return False
 
     def generate_position(self):
-        rand_position_abs = random.randrange(0, GRID_SIZE)
-        rand_position_ord = random.randrange(0, GRID_SIZE)
+        rand_position_abs = random.randrange(0, self.GRID_SIZE)
+        rand_position_ord = random.randrange(0, self.GRID_SIZE)
         return {
             "abs" : rand_position_abs,
             "ord" : rand_position_ord
