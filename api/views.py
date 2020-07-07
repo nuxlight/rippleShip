@@ -35,7 +35,7 @@ def update_ship(request, pk):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'PUT':
-        serializer = ShipSerializer(ship, data=request.data)
+        serializer = ShipSerializer(ship, data=request.data['ship'])
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
