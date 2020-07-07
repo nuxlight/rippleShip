@@ -2,6 +2,7 @@ import numpy as np
 import random 
 import logging
 import uuid
+from .serializers import PartySerializer, ShipSerializer
 
 from .models import Ship, Grid, Position, Party, ShipType
 
@@ -29,9 +30,31 @@ class GameEngine():
         self.SOUSMARIN_NUMBER = sousmarin__number
         super().__init__()
 
+    def get_game(self, uuid):
+        party = Party.objects.get(uuid=uuid)
+        party_ser = PartySerializer(party)
+        ships = Ship.objects.filter(party=party)
+        ships_list = []
+        for ship in ships:
+            positions = Position.objects.filter(ship=ship)
+            ser_ship = ShipSerializer(ship)
+            ships_list.append({
+                'ship': ser_ship.data,
+                'type': ship.ship_type.name,
+                'positions': positions.values()
+            })
+        return {
+            'party': party_ser.data,
+            'ships': ships_list
+        }
+
     def create_game_board(self):
+        uuid_generated = str(uuid.uuid4())
         grid = np.full((self.GRID_SIZE,self.GRID_SIZE), 0)
-        party = Party(uuid=str(uuid.uuid4()), grid=Grid(width=self.GRID_SIZE,height=self.GRID_SIZE))
+        grid_db = Grid(width=self.GRID_SIZE,height=self.GRID_SIZE)
+        grid_db.save()
+        party = Party(uuid=uuid_generated, grid=grid_db)
+        party.save()
         # Create dict type for each ship
         croiseur = {"name": "C","type": 1,"size": 4}
         escorteurs = {"name": "E","type": 2,"size": 3}
@@ -40,18 +63,20 @@ class GameEngine():
         # generate ship positions
         for i in range(0, self.CROISEUR_NUMBER):
             path = self.create_ship(croiseur, grid)
-            ship = Ship(party=party, ship_type=1)
-            ship.save()
-            Position(ship=ship, abs=path["abs"], ord=path["ord"]).save()
+            self.save_ship_and_position(party, path, 1)
         for i in range(0, self.ESCORTEUR_NUMBER):
             self.create_ship(escorteurs, grid)
+            self.save_ship_and_position(party, path, 2)
         for i in range(0, self.TORPILLEUR_NUMBER):
             self.create_ship(torpilleurs, grid)
+            self.save_ship_and_position(party, path, 3)
         for i in range(0, self.SOUSMARIN_NUMBER):
             self.create_ship(sousmarin, grid)
+            self.save_ship_and_position(party, path, 4)
         self.clean_grid(grid)
         logger.info("New board generated")
         logger.info(grid)
+        return uuid_generated
 
     def clean_grid(self, grid):
         np.place(grid, grid==8, 0)
@@ -68,6 +93,12 @@ class GameEngine():
         self.draw_ship(path, ship, position, grid)
         return path
 
+    def save_ship_and_position(self, party, path, ship_type):
+        ship_db = Ship(party=party, ship_type=ShipType.objects.get(pk=ship_type))
+        ship_db.save()
+        for position in path:
+            position = Position(ship=ship_db, abs=int(position["abs"]), ord=int(position["ord"]))
+            position.save()
 
     def draw_ship(self, path, ship, position, grid):
         for empl in path:

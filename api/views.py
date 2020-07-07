@@ -13,9 +13,13 @@ ge = GameEngine(10,1,2,3,4)
 @api_view(['GET'])
 def generate_party(request):
     logger.info("Generate a new party !!")
-    ge.create_game_board()
     return Response(
         {
-            'uuid': str(uuid.uuid4())
+            'uuid': ge.create_game_board()
         }
     )
+
+@api_view(['GET'])
+def get_party(request, uuid):
+    logger.info("Get party number : "+uuid)
+    return Response(ge.get_game(uuid))
