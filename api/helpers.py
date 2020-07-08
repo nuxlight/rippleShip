@@ -2,7 +2,7 @@ import numpy as np
 import random 
 import logging
 import uuid
-from .serializers import PartySerializer, ShipSerializer
+from .serializers import PartySerializer, ShipSerializer, GridSerializer
 
 from .models import Ship, Grid, Position, Party, ShipType
 
@@ -33,6 +33,7 @@ class GameEngine():
     def get_game(self, uuid):
         party = Party.objects.get(uuid=uuid)
         party_ser = PartySerializer(party)
+        grid_ser = GridSerializer(party.grid)
         ships = Ship.objects.filter(party=party)
         ships_list = []
         for ship in ships:
@@ -45,6 +46,7 @@ class GameEngine():
             })
         return {
             'party': party_ser.data,
+            'grid': grid_ser.data,
             'ships': ships_list
         }
 
