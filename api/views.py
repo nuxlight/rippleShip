@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view
 import logging
 import uuid
 from .helpers import GameEngine
-from .models import Ship
+from .models import Ship, Position
 from .serializers import ShipSerializer
 
 logger = logging.getLogger('django')
@@ -36,6 +36,20 @@ def update_ship(request, pk):
 
     if request.method == 'PUT':
         serializer = ShipSerializer(ship, data=request.data['ship'])
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['PUT'])
+def update_position(request, pk):
+    try:
+        position = Position.objects.get(pk=pk)
+    except Position.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'PUT':
+        serializer = ShipSerializer(position, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
