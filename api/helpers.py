@@ -37,7 +37,7 @@ class GameEngine():
         ships = Ship.objects.filter(party=party)
         ships_list = []
         for ship in ships:
-            positions = Position.objects.filter(ship=ship)
+            positions = Position.objects.filter(ship=ship.pk)
             ser_ship = ShipSerializer(ship)
             ships_list.append({
                 'ship': ser_ship.data,
@@ -67,13 +67,13 @@ class GameEngine():
             path = self.create_ship(croiseur, grid)
             self.save_ship_and_position(party, path, 1)
         for i in range(0, self.ESCORTEUR_NUMBER):
-            self.create_ship(escorteurs, grid)
+            path = self.create_ship(escorteurs, grid)
             self.save_ship_and_position(party, path, 2)
         for i in range(0, self.TORPILLEUR_NUMBER):
-            self.create_ship(torpilleurs, grid)
+            path = self.create_ship(torpilleurs, grid)
             self.save_ship_and_position(party, path, 3)
         for i in range(0, self.SOUSMARIN_NUMBER):
-            self.create_ship(sousmarin, grid)
+            path = self.create_ship(sousmarin, grid)
             self.save_ship_and_position(party, path, 4)
         self.clean_grid(grid)
         logger.info("New board generated")
